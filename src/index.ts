@@ -77,4 +77,41 @@ app.patch('/profile', requiresAuth(), async (req, res) => {
   }
 });
 
+app.get('/users', requiresAuth(), async (req, res) => {
+  try {
+    const users = [];
+    let page = 0;
+
+    while (true) {
+      const response = await auth0Management.users.getAll({
+        fields: 'email,created_at,logins_count,last_login',
+        include_totals: true,
+        page,
+      });
+
+      for (const user of response.data.users) {
+        users.push(user);
+      }
+
+      if (users.length === response.data.total) {
+        break;
+      }
+
+      page++;
+    }
+
+    res.send(
+      users.map((user: any) => ({
+        email: user.email,
+        createdAt: user.created_at,
+        loginCount: user.logins_count,
+        lastSession: user.last_login,
+      }))
+    );
+  } catch (e) {
+    console.error(e);
+    res.status(500).send({error: 'Failed to retrieve users'});
+  }
+});
+
 app.listen(8000, '0.0.0.0');
