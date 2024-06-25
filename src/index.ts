@@ -114,4 +114,15 @@ app.get('/users', requiresAuth(), async (req, res) => {
   }
 });
 
+app.get('/stats', requiresAuth(), async (req, res) => {
+  const response = await auth0Management.users.getAll({
+    include_totals: true,
+    per_page: 0,
+  });
+
+  res.send({
+    totalUsers: response.data.total,
+  });
+});
+
 app.listen(8000, '0.0.0.0');
